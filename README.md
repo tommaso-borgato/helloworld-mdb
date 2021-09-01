@@ -87,6 +87,8 @@ mvn install -Denforcer.skip -DskipTests
 
 # enable-amq1-prefix="true"
 
+> This is already what you have if you followed the instructions so far;
+
 With the following configuration in `standalone-full.xml` (note `enable-amq1-prefix="true"`):
 
 ```
@@ -108,8 +110,8 @@ With the following configuration in `standalone-full.xml` (note `enable-amq1-pre
 And the following Servlet and MDB (note NO `jms.queue.` prefix is present anywhere):
 
 ```
-@WebServlet("/HelloWorldMDBServletClientRemoteArtemis")
-public class HelloWorldMDBServletClientRemoteArtemis extends HttpServlet {
+@WebServlet("/HelloWorldMDBServletClient")
+public class HelloWorldMDBServletClient extends HttpServlet {
 
     @Inject
     @JMSConnectionFactory("java:/jms/remoteCF")
@@ -121,13 +123,13 @@ public class HelloWorldMDBServletClientRemoteArtemis extends HttpServlet {
 ```
 
 ```
-@MessageDriven(name = "TestQueueMDB", activationConfig = {
+@MessageDriven(name = "HelloWorldQueueMDB", activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "jms.queue.testQueueRemoteArtemis"),
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
         @ActivationConfigProperty(propertyName = "useJNDI", propertyValue = "false"),
         @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto-acknowledge") })
 @ResourceAdapter("remote-artemis")
-public class TestQueueMDB implements MessageListener {
+public class HelloWorldQueueMDB implements MessageListener {
     ...
 ```
 
@@ -139,6 +141,15 @@ When you invoke `http://127.0.0.1:8080/helloworld-mdb/HelloWorldMDBServletClient
 
 
 # enable-amq1-prefix="false"
+
+> To get this configuration you have to change `standalone-full.xml` either manually or via the cli like in the following:
+
+```
+[standalone@embedded /] /subsystem=messaging-activemq/pooled-connection-factory=remote-artemis:write-attribute(name="enable-amq1-prefix", value="false")
+{"outcome" => "success"}
+```
+
+> And you also need to add the `jms.queue.` prefix on the `destinationLookup` in the MDB;
 
 With the following configuration in `standalone-full.xml` (note `enable-amq1-prefix="false"`):
 
@@ -161,8 +172,8 @@ With the following configuration in `standalone-full.xml` (note `enable-amq1-pre
 And the following Servlet and MDB (note the `jms.queue.` prefix is present only in the MDB configuration):
 
 ```
-@WebServlet("/HelloWorldMDBServletClientRemoteArtemis")
-public class HelloWorldMDBServletClientRemoteArtemis extends HttpServlet {
+@WebServlet("/HelloWorldMDBServletClient")
+public class HelloWorldMDBServletClient extends HttpServlet {
 
     @Inject
     @JMSConnectionFactory("java:/jms/remoteCF")
@@ -174,13 +185,13 @@ public class HelloWorldMDBServletClientRemoteArtemis extends HttpServlet {
 ```
 
 ```
-@MessageDriven(name = "TestQueueMDB", activationConfig = {
+@MessageDriven(name = "HelloWorldQueueMDB", activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "jms.queue.testQueueRemoteArtemis"),
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
         @ActivationConfigProperty(propertyName = "useJNDI", propertyValue = "false"),
         @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto-acknowledge") })
 @ResourceAdapter("remote-artemis")
-public class TestQueueMDB implements MessageListener {
+public class HelloWorldQueueMDB implements MessageListener {
     ...
 ```
 
