@@ -76,9 +76,11 @@ $WILDFLY_BASE_PATH/bin/standalone.sh -c standalone-full.xml
 # Test Application
 
 For the test application you can use an adapted version of the `helloworld-mdb` module in `git@github.com:wildfly/quickstart.git`;
+You can find everything you need at `https://github.com/tommaso-borgato/helloworld-mdb`:
 
 ```
-git clone 
+git clone git@github.com:tommaso-borgato/helloworld-mdb.git
+cd helloworld-mdb
 mvn install -Denforcer.skip -DskipTests
 ```
 
