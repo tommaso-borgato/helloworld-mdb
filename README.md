@@ -129,7 +129,7 @@ public class TestQueueMDB implements MessageListener {
     ...
 ```
 
-When you invoke `http://127.0.0.1:8080/helloworld-mdb/HelloWorldMDBServletClientRemoteArtemis?queue`:
+When you invoke `http://127.0.0.1:8080/helloworld-mdb/HelloWorldMDBServletClient`:
 
 * the queue (and address) `jms.queue.testQueueRemoteArtemis` is created in Artemis
 * the servlet sends messages to Artemis `jms.queue.testQueueRemoteArtemis`
@@ -182,7 +182,7 @@ public class TestQueueMDB implements MessageListener {
     ...
 ```
 
-When you invoke `http://127.0.0.1:8080/helloworld-mdb/HelloWorldMDBServletClientRemoteArtemis?queue`:
+When you invoke `http://127.0.0.1:8080/helloworld-mdb/HelloWorldMDBServletClient`:
 
 * the queue (and address) `jms.queue.testQueueRemoteArtemis` is created in Artemis
 * the servlet sends messages to Artemis `jms.queue.testQueueRemoteArtemis`
