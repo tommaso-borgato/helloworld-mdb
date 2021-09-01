@@ -1,5 +1,15 @@
 # helloworld-mdb
 
+This project shows how-to:
+
+* Install AMQ Artemis Broker
+* Install and configure WildFly to connect to the AMQ Artemis Broker
+* Use a servlet to send messages to a queue in the AMQ Artemis Broker
+* Use a Message Driven Bean to read those messages back from the queue in the AMQ Artemis Broker
+
+> NOTE: "destination" in the linked documentation is used as synonym to queue or topic
+
+> NOTE: in the AMQ Artemis Broker a queue is implemented as an "address" containing a single queue
 
 # Install and configure ActiveMQ Artemis:
 
