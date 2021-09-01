@@ -10,6 +10,7 @@ This project shows how-to:
 > NOTE: "destination" in the linked documentation is used as synonym to queue or topic
 
 > NOTE: in the AMQ Artemis Broker a queue is implemented as an "address" containing a single queue
+ 
 
 # Install and configure ActiveMQ Artemis:
 
@@ -60,9 +61,6 @@ $WILDFLY_BASE_PATH/bin/jboss-cli.sh
 
 [standalone@embedded /] /subsystem=messaging-activemq/external-jms-queue=testQueueRemoteArtemis:add(entries=[java:/queue/testQueueRemoteArtemis])
 {"outcome" => "success"}
-
-[standalone@embedded /] /subsystem=messaging-activemq/external-jms-topic==testTopicRemoteArtemis:add(entries=[java:/topic/testTopicRemoteArtemis])
-{"outcome" => "success"}
 ```
 
 you end up with having something like the following in `standalone-full.xml` (note the `enable-amq1-prefix="false"` telling WF not to add the legacy prefixes when talking to Artemis):
@@ -72,7 +70,6 @@ you end up with having something like the following in `standalone-full.xml` (no
     <remote-connector name="remote-artemis" socket-binding="remote-artemis"/>
     <pooled-connection-factory name="remote-artemis" entries="java:/jms/remoteCF" connectors="remote-artemis" enable-amq1-prefix="true"/>
     <external-jms-queue name="testQueueRemoteArtemis" entries="java:/queue/testQueueRemoteArtemis"/>
-    <external-jms-topic name="testTopicRemoteArtemis" entries="java:/topic/testTopicRemoteArtemis"/>
 ...            
 ```  
 
@@ -81,6 +78,14 @@ finally start the server:
 ```
 $WILDFLY_BASE_PATH/bin/standalone.sh -c standalone-full.xml
 ```
+
+> NOTE: if you don't define the queue in the configuration you get the following error when later deploying the application:
+> ```text
+>   16:10:01,089 ERROR [org.jboss.as.controller.management-operation] (DeploymentScanner-threads - 1) WFLYCTL0013: Operation ("deploy") failed - address: ([("deployment" => "helloworld-mdb.war")]) - failure description: {
+>   "WFLYCTL0412: Required services that are not installed:" => ["jboss.naming.context.java.queue.testQueueRemoteArtemis"],
+>   "WFLYCTL0180: Services with missing/unavailable dependencies" => ["jboss.naming.context.java.module.helloworld-mdb.helloworld-mdb.env.\"org.jboss.as.quickstarts.servlet.HelloWorldMDBServletClient\".queue is missing [jboss.naming.context.java.queue.testQueueRemoteArtemis]"]
+>   }
+> ```
 
 
 # Test Application
@@ -117,7 +122,7 @@ With the following configuration in `standalone-full.xml` (note `enable-amq1-pre
     </socket-binding-group>
 ```
 
-And the following Servlet and MDB (note NO `jms.queue.` prefix is present anywhere):
+And the following Servlet and MDB (note NO `jms.queue.` prefix is present anywhere - not in the servlet nor in the MDB):
 
 ```
 @WebServlet("/HelloWorldMDBServletClient")
@@ -134,7 +139,7 @@ public class HelloWorldMDBServletClient extends HttpServlet {
 
 ```
 @MessageDriven(name = "HelloWorldQueueMDB", activationConfig = {
-        @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "jms.queue.testQueueRemoteArtemis"),
+        @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "testQueueRemoteArtemis"),
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
         @ActivationConfigProperty(propertyName = "useJNDI", propertyValue = "false"),
         @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto-acknowledge") })
@@ -142,6 +147,8 @@ public class HelloWorldMDBServletClient extends HttpServlet {
 public class HelloWorldQueueMDB implements MessageListener {
     ...
 ```
+
+> NOTE: the `@ResourceAdapter("remote-artemis")` references `<pooled-connection-factory name="remote-artemis" ... >` the in the WildFly configuration
 
 When you invoke `http://127.0.0.1:8080/helloworld-mdb/HelloWorldMDBServletClient`:
 
@@ -153,13 +160,11 @@ When you invoke `http://127.0.0.1:8080/helloworld-mdb/HelloWorldMDBServletClient
 # enable-amq1-prefix="false"
 
 > To get this configuration you have to change `standalone-full.xml` either manually or via the cli like in the following:
-
-```
-[standalone@embedded /] /subsystem=messaging-activemq/pooled-connection-factory=remote-artemis:write-attribute(name="enable-amq1-prefix", value="false")
-{"outcome" => "success"}
-```
-
-> And you also need to add the `jms.queue.` prefix on the `destinationLookup` in the MDB;
+> ```
+> [standalone@embedded /] /subsystem=messaging-activemq/pooled-connection-factory=remote-artemis:write-attribute(name="enable-amq1-prefix", value="false")
+> {"outcome" => "success"}
+> ```
+> And you also need to add the `jms.queue.` prefix on the `destinationLookup` in the `HelloWorldQueueMDB` MDB configuration (see later);
 
 With the following configuration in `standalone-full.xml` (note `enable-amq1-prefix="false"`):
 
@@ -204,6 +209,8 @@ public class HelloWorldMDBServletClient extends HttpServlet {
 public class HelloWorldQueueMDB implements MessageListener {
     ...
 ```
+
+> NOTE: the `@ResourceAdapter("remote-artemis")` references `<pooled-connection-factory name="remote-artemis" ... >` the in the WildFly configuration
 
 When you invoke `http://127.0.0.1:8080/helloworld-mdb/HelloWorldMDBServletClient`:
 
